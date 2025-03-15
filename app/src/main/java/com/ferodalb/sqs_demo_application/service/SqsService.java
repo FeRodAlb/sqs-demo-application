@@ -1,36 +1,33 @@
 package com.ferodalb.sqs_demo_application.service;
 
+import io.awspring.cloud.sqs.operations.SendResult;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SqsException;
 
 @Service
 public class SqsService {
 
+
     private static final Logger LOGGER = LoggerFactory.getLogger(SqsService.class);
 
-    private SqsClient sqsClient;
+    private SqsTemplate sqsTemplate;
 
     @Value("${aws.sqs.queueUrl}")
     private String queueUrl;
 
-    public SqsService(SqsClient sqsClient){
-        this.sqsClient = sqsClient;
+    public SqsService(SqsTemplate sqsTemplate){
+        this.sqsTemplate = sqsTemplate;
     }
 
-    public SendMessageResponse sendMessage(String message){
+    public SendResult<String> sendMessage(String message){
 
         try {
-            SendMessageResponse response = sqsClient.sendMessage(SendMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .messageBody(message)
-                    .delaySeconds(10)
-                    .build());
+
+            SendResult<String> response = sqsTemplate.send(queueUrl, message);
 
             LOGGER.atInfo().setMessage("Message sent successfully. MessageId: {}")
                     .addArgument(response.messageId())
